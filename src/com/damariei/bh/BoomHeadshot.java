@@ -25,6 +25,7 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 	
 	public void onEnable(){ 
 		log = this.getLogger();
+		this.getServer().getPluginManager().registerEvents(this, this);
 		
 		// Load mods from config
 		if (!this.getDataFolder().exists()) {
@@ -75,16 +76,12 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 				double modifier = 1;
 				if(diffY < 2 && diffY > 1.55) {
 					modifier = headMod;
-					getServer().getPlayer("dim3000").sendMessage("HEAD!");
 				} else if(diffY < 1.55 && diffY > .8) {
 					modifier = chestMod;
-				getServer().getPlayer("dim3000").sendMessage("HEAD!");
 				} else if(diffY < .8 && diffY > .45) {
 					modifier = legMod;
-				getServer().getPlayer("dim3000").sendMessage("HEAD!");
 				} else if(diffY < .45 && diffY > 0) {
 					modifier = feetMod;
-				getServer().getPlayer("dim3000").sendMessage("HEAD!");
 				}
 				event.setDamage((int) (event.getDamage()*modifier));
 			}
