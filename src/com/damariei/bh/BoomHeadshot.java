@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,6 +23,11 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 	double chestMod = 1.0;
 	double legMod = 1.0;
 	double feetMod = 1.0;
+	
+	// Additional Vars.
+	boolean includePlayers = false;
+	String zombieMsg = "";
+	String playerMsg = "";
 	
 	
 	public void onEnable(){ 
@@ -38,6 +45,9 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 			this.getConfig().set("chest", chestMod);
 			this.getConfig().set("legs", legMod);
 			this.getConfig().set("feet", feetMod);
+			this.getConfig().set("includePlayers", includePlayers);
+			this.getConfig().set("zombieHitMsg", zombieMsg);
+			this.getConfig().set("playerHitMsg", playerMsg);
 			
 			this.saveConfig();
 		} else {
@@ -45,6 +55,9 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 			chestMod = this.getConfig().getDouble("chest");
 			legMod = this.getConfig().getDouble("legs");
 			feetMod = this.getConfig().getDouble("feet");
+			includePlayers = this.getConfig().getBoolean("includePlayers");
+			playerMsg = this.getConfig().getString("playerHitMsg");
+			zombieMsg = this.getConfig().getString("zombieHitMsg");
 		}
 		
 		log.info("Enabled!");
@@ -61,8 +74,9 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 		
 		// Check to see if it's a zombie/player getting hit by an arrow
 		if (event.getDamager().getType()==EntityType.ARROW) {
-			if (event.getEntity().getType()==EntityType.ZOMBIE
-					||event.getEntity().getType()==EntityType.PLAYER) {
+			
+			EntityType typeHit = event.getEntity().getType();
+			if (typeHit==EntityType.ZOMBIE||(typeHit==EntityType.PLAYER && includePlayers)) {
 				
 				// Check to see where it got hit and apply a modifier
 				Location arrowLoc = event.getDamager().getLocation();
@@ -74,8 +88,11 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 				 */
 				double diffY = arrowLoc.getY()-zombieLoc.getY();
 				double modifier = 1;
+				boolean isHeadshot = false;
+				
 				if(diffY < 2 && diffY > 1.55) {
 					modifier = headMod;
+					isHeadshot = true;
 				} else if(diffY < 1.55 && diffY > .8) {
 					modifier = chestMod;
 				} else if(diffY < .8 && diffY > .45) {
@@ -84,6 +101,21 @@ public class BoomHeadshot extends JavaPlugin implements Listener {
 					modifier = feetMod;
 				}
 				event.setDamage((int) (event.getDamage()*modifier));
+				
+				// Show custom message
+				Arrow arrow = (Arrow)event.getDamager();
+				
+				if (isHeadshot && arrow.getShooter() instanceof Player) {
+					Player pl = (Player)arrow.getShooter();
+					
+					if (typeHit==EntityType.ZOMBIE && !zombieMsg.equals("")) 
+						pl.sendMessage(zombieMsg);
+					
+					if (typeHit==EntityType.PLAYER && !playerMsg.equals(""))
+						pl.sendMessage(playerMsg);
+					
+				}
+				
 			}
 			
 		}
